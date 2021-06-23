@@ -1,14 +1,19 @@
 <template>
-  <div class="main">
+  <div class="main" @click="router.push('/home')">
     <img src="../assets/phone.png" >
   </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
+import router from '@/router'
+
 export default defineComponent({
   name: 'PhoneIcon',
   setup: () => {
+    return {
+      router
+    }
   }
 })
 </script>

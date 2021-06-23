@@ -1,7 +1,7 @@
 <template>
   <div class="video-page">
     <video class="localVideo" />
-    <video class="remoteVideo" />
+    <video class="remoteVideo" ref="remoteVideo" />
     
     <section class="phone-section">
       <PhoneIcon />
@@ -10,15 +10,31 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { ref, defineComponent, onMounted } from 'vue'
 import PhoneIcon from '@/components/PhoneIcon.vue'
+import { webRTC_mediaStreamQuery } from '@/config/webRTC'
 
 export default defineComponent({
   components: {
     PhoneIcon
   },
   setup() {
-    
+    let localVideo = ref(null)
+    const getLocalVideo = async () => {
+      try {
+        const localMediaStream = await navigator.mediaDevices.getUserMedia(webRTC_mediaStreamQuery)
+        localVideo.value.srcObject = localMediaStream
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    onMounted(() => {
+      getLocalVideo()
+    })
+    return {
+      localVideo,
+    }
   },
 })
 </script>

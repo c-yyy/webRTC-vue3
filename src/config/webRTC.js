@@ -26,12 +26,12 @@ export const webRTC_mediaStreamQuery = {
     facingMode: "user",
     width: {
       min: 600,
-      ideal: 1080,
+      ideal: 1280,
       max: 1920
     },
     height: {
       min: 400,
-      ideal: 720,
+      ideal: 800,
       max: 1080
     }
   },

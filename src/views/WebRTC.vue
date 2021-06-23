@@ -1,7 +1,7 @@
 <template>
   <div class="video-page">
-    <video class="localVideo" />
-    <video class="remoteVideo" ref="remoteVideo" />
+    <video class="localVideo" autoplay ref="localVideo" />
+    <video class="remoteVideo" autoplay ref="remoteVideo" />
     
     <section class="phone-section">
       <PhoneIcon />
@@ -24,6 +24,7 @@ export default defineComponent({
       try {
         const localMediaStream = await navigator.mediaDevices.getUserMedia(webRTC_mediaStreamQuery)
         localVideo.value.srcObject = localMediaStream
+        console.log(localVideo)
       } catch (error) {
         console.error(error)
       }

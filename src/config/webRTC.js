@@ -1,3 +1,9 @@
+/** socket 配置 */
+export const socket_config = {
+  url: '',
+  config: {}
+}
+
 /** webRTC ICE 配置 */
 export const webRTC_configuration = {
   iceServers: [
@@ -27,7 +33,7 @@ export const webRTC_mediaStreamQuery = {
     width: {
       min: 600,
       ideal: 1280,
-      max: 1920
+      max: 1920,
     },
     height: {
       min: 400,

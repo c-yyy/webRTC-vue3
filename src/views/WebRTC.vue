@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { ref, defineComponent, onMounted } from 'vue'
+import { ref, defineComponent, onMounted, onUnmounted } from 'vue'
 import PhoneIcon from '@/components/PhoneIcon.vue'
 import { webRTC_mediaStreamQuery, webRTC_configuration, socket_config } from '@/config/webRTC'
 
@@ -22,13 +22,22 @@ export default defineComponent({
     let localVideo = ref(null)
     let localMediaStream = null
     const connection = new RTCPeerConnection(webRTC_configuration)
-    console.log(io, 'socket')
     const socket = io(socket_config.url, socket_config.config)
+    console.log('RTCPeerConnection', connection)
+
+    const closeVideo = () => {
+      localMediaStream.getTracks().map(track => track.stop())
+      localMediaStream = null
+      connection.close()
+      socket.emit('leave')
+      socket.close()
+    }
 
     const getLocalVideo = async () => {
       try {
         localMediaStream = await navigator.mediaDevices.getUserMedia(webRTC_mediaStreamQuery)
         localVideo.value.srcObject = localMediaStream
+        console.log(localMediaStream)
 
         connection.addStream(localMediaStream)
         connection.onaddstream = e => {
@@ -36,12 +45,21 @@ export default defineComponent({
         }
         connection.onicecandidate = e => {
           console.log('onicecandidate', e)
+          if (e.candidate) {
+            socket.emit('message', {
+              type: 'candidate',
+              candidate: e.candidate
+            })
+          }
         }
         connection.createOffer().then(offer => {
-          connection.setLocalDescription(offer)
           console.log('offer', offer)
+          connection.setLocalDescription(offer)
+          socket.emit('message', {
+            type: 'offer',
+            offer
+          })
         })
-        console.log(localVideo)
       } catch (error) {
         console.error(error)
       }
@@ -58,10 +76,7 @@ export default defineComponent({
             connection.addIceCandidate(new RTCIceCandidate(data.candidate))
             break;
           case 'close':
-            localMediaStream.getTracks().map(track => track.stop())
-            localMediaStream = null
-            connection.close()
-            socket.emit('leave')
+            closeVideo()
         }
       })
     }
@@ -70,6 +85,11 @@ export default defineComponent({
       getLocalVideo()
       getRemoteVide()
     })
+
+    onUnmounted(() => {
+      closeVideo()
+    })
+
     return {
       localVideo,
     }

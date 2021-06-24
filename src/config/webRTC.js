@@ -1,6 +1,6 @@
 /** socket 配置 */
 export const socket_config = {
-  url: '',
+  url: 'http://192.168.1.111:3479',
   config: {}
 }
 

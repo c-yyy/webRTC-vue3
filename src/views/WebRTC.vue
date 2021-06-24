@@ -1,8 +1,8 @@
 <template>
   <div class="video-page">
-    <video class="localVideo" autoplay ref="localVideo" />
+    <video class="localVideo" autoplay ref="localVideo" muted />
     <video class="remoteVideo" autoplay ref="remoteVideo" />
-    
+
     <section class="phone-section">
       <PhoneIcon />
     </section>
@@ -18,10 +18,12 @@ export default defineComponent({
   components: {
     PhoneIcon
   },
-  setup() {
+  setup () {
     let localVideo = ref(null)
+    let remoteVideo = ref(null)
     let localMediaStream = null
     const connection = new RTCPeerConnection(webRTC_configuration)
+    // eslint-disable-next-line no-undef
     const socket = io(socket_config.url, socket_config.config)
     console.log('RTCPeerConnection', connection)
 
@@ -39,41 +41,80 @@ export default defineComponent({
         localVideo.value.srcObject = localMediaStream
         console.log(localMediaStream)
 
-        connection.addStream(localMediaStream)
-        connection.onaddstream = e => {
-          console.log('onaddstream', e)
+        /** Track 方式 */
+        localMediaStream.getTracks().forEach(track => connection.addTrack(track, localMediaStream))
+        connection.ontrack = (e) => {
+          console.log('ontrack', e)
+          if (remoteVideo.value.srcObject !== e.streams[0]) {
+            remoteVideo.value.srcObject = e.streams[0]
+          }
         }
+
+        /** Stream 方式 */
+        // connection.addStream(localMediaStream)
+        // connection.onaddstream = e => {
+        //   console.log('onaddstream', e)
+        //   if (remoteVideo.srcObject !== e.streams[0]) {
+        //     remoteVideo.value.srcObject = e.streams[0]
+        //   }
+        // }
+
         connection.onicecandidate = e => {
           console.log('onicecandidate', e)
           if (e.candidate) {
             socket.emit('message', {
               type: 'candidate',
+              from: window.location.href.includes('type=test'),
               candidate: e.candidate
             })
           }
         }
-        connection.createOffer().then(offer => {
-          console.log('offer', offer)
-          connection.setLocalDescription(offer)
-          socket.emit('message', {
-            type: 'offer',
-            offer
+
+        if (!window.location.href.includes('type=test')) {
+          connection.createOffer({
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true
+          }).then(offer => {
+            console.log('offer', offer)
+            connection.setLocalDescription(offer)
+            socket.emit('message', {
+              type: 'offer',
+              offer
+            })
           })
-        })
+        }
       } catch (error) {
         console.error(error)
       }
     }
 
     const getRemoteVide = () => {
-      socket.on('message', data => {
+      socket.on('message', async data => {
         const { type } = data
         switch (type) {
+          case 'offer':
+            if (window.location.href.includes('type=test')) {
+              await connection.setRemoteDescription(new RTCSessionDescription(data.offer))
+              connection.createAnswer().then(answer => {
+                console.log('answer', answer)
+                connection.setLocalDescription(answer)
+                socket.emit('message', {
+                  type: 'answer',
+                  answer
+                })
+              })
+              break;
+            }
+            return
           case 'answer':
-            connection.setRemoteDescription(new RTCSessionDescription(data.answer))
+            if (!window.location.href.includes('type=test') && data.answer) {
+              connection.setRemoteDescription(new RTCSessionDescription(data.answer))
+            }
             break;
           case 'candidate':
-            connection.addIceCandidate(new RTCIceCandidate(data.candidate))
+            if (connection && data.candidate && data.from !== window.location.href.includes('type=test')) {
+              connection.addIceCandidate(new RTCIceCandidate(data.candidate))
+            }
             break;
           case 'close':
             closeVideo()
@@ -92,25 +133,23 @@ export default defineComponent({
 
     return {
       localVideo,
+      remoteVideo
     }
   },
 })
 </script>
 
-<style lang="less" scoped>
+<style scoped>
 .video-page {
   width: 100vw;
   height: 100vh;
   position: relative;
 }
-.localVideo, .remoteVideo {
+.localVideo,
+.remoteVideo {
   background: #303133;
 }
 .localVideo {
-  width: 100%;
-  height: 100%;
-}
-.remoteVideo {
   position: absolute;
   top: 0;
   right: 0;
@@ -118,6 +157,10 @@ export default defineComponent({
   height: 30vh;
   background: #fff;
   z-index: 3;
+}
+.remoteVideo {
+  width: 100%;
+  height: 100%;
 }
 .phone-section {
   position: absolute;

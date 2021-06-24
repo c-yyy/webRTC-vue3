@@ -1,32 +1,29 @@
 <template>
-  <div class="main" @click="router.push('/home')">
+  <div class="main">
     <img src="../assets/phone.png" >
   </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
-import router from '@/router'
 
 export default defineComponent({
   name: 'PhoneIcon',
   setup: () => {
-    return {
-      router
-    }
   }
 })
 </script>
 
 <style scoped>
 .main {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('../assets/bg-img.png');
+  background-size: cover;
+  background-repeat: no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #F56C6C;
 }
 img {
   width: 60%;

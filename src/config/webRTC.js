@@ -17,7 +17,29 @@ export const webRTC_configuration = {
     }
   ],
   iceTransportPolicy: 'relay', // 可选值 all or relay
-  iceCandidatePoolSize: 0
+  iceCandidatePoolSize: 0,
+  optionalArgument: {
+    optional: [{
+      DtlsSrtpKeyAgreement: true
+    }, {
+      googImprovedWifiBwe: true
+    }, {
+      googScreencastMinBitrate: 300
+    }, {
+      googIPv6: true
+    }, {
+      googDscp: true
+    }, {
+      googCpuUnderuseThreshold: 55
+    }, {
+      googCpuOveruseThreshold: 85
+    }, {
+      googSuspendBelowMinBitrate: true
+    }, {
+      googCpuOveruseDetection: true
+    }],
+    mandatory: {}
+  }
 }
 
 /** webRTC offer 配置 */
@@ -41,5 +63,5 @@ export const webRTC_mediaStreamQuery = {
       max: 1080
     }
   },
-  audio: false
+  audio: true
 }

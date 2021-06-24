@@ -1,7 +1,6 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import Layout from '@/layout/index.vue'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
-export const constantRoutes: Array<RouteRecordRaw> = [
+export const constantRoutes = [
   {
     path: '/',
     redirect: '/home'
